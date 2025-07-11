@@ -2,7 +2,7 @@
 .dashboard-footer {
     margin-top: 0px;
     
-    background: #2C3E50; /* Gradiente verde institucional de la UNCP */
+    background: #fbff00; /* Gradiente verde institucional de la UNCP */
     padding: 30px 20px; /* Añadido más espacio para hacerlo más elegante */
     color: white;
     display: flex;
@@ -38,7 +38,7 @@
 
 /* Efecto de hover para los items */
 .footer-item:hover {
-    background-color: #F1C40F; /* Amarillo suave para resaltar sobre el fondo verde */
+    background-color: #f5f5f5; /* Amarillo suave para resaltar sobre el fondo verde */
     transform: translateY(-5px); /* Sutil efecto de elevar */
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* Sombra más prominente */
     padding: 12px 25px; /* Aumentar el padding al hacer hover */
@@ -53,7 +53,7 @@
 .footer-text h3 {
     font-family: 'Playfair Display', serif; /* Aplica la nueva fuente */
     font-size: 1.2rem; /* Aumento del tamaño para hacerlo más visible */
-    color: rgb(255, 251, 0); /* Mantienes el color dorado */
+    color: rgb(1, 17, 241); /* Mantienes el color dorado */
     text-align: center;
     font-weight: 500; /* Peso de fuente un poco más fuerte para darle elegancia */
     font-style: italic; /* Si deseas que tenga un estilo itálico */

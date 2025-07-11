@@ -580,6 +580,51 @@ app.get('/api/usuarios', async (req, res) => {
   }
 });
 
+///TINKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--------------------------------
+app.get('/api/sorteos', (req, res) => {
+  db.query('SELECT fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa FROM sorteos ORDER BY fecha DESC', (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Error al cargar sorteos' });
+    res.json(rows);
+  });
+});
+
+app.get('/api/frecuencias', (req, res) => {
+  db.query('SELECT numero, veces_salida FROM frecuencias ORDER BY numero ASC', (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Error al cargar frecuencias' });
+    res.json(rows);
+  });
+});
+
+
+app.post('/api/sorteos', (req, res) => {
+  const { fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa } = req.body;
+  const sql = `
+    INSERT INTO sorteos (fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  const values = [fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Error al insertar sorteo:', err);
+      return res.status(500).json({ error: 'Error al insertar sorteo' });
+    }
+
+    // Opcional: actualizamos frecuencias con un procedimiento/función adicional
+    res.json({ message: 'Sorteo agregado exitosamente', id: result.insertId });
+  });
+});
+
+app.get('/api/predicciones', (req, res) => {
+  db.query('SELECT * FROM predicciones ORDER BY id DESC LIMIT 10', (err, resultados) => {
+    if (err) return res.status(500).json({ error: 'Error al consultar predicciones' });
+    res.json(resultados);
+  });
+});
+
+
+
+
 
 app.get('/api/terrenos', async (req, res) => {
   try {
