@@ -55,9 +55,10 @@ const ejecutarModelo = async () => {
     const res = await fetch(`${API_TINKA}/ejecutarmodelos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ejecutar: true })  // ← porque tu endpoint espera este body
+      body: JSON.stringify({ ejecutar: true })
     });
     const data = await res.json();
+    console.log('[DEBUG] Respuesta del modelo:', data); // <--- Agrega esto
     alert(data.message || '✅ Modelo ejecutado correctamente');
     obtenerPredicciones();
   } catch (error) {
