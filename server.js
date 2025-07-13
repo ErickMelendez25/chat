@@ -189,7 +189,7 @@
     queueLimit:         0,
   });
 
-  // Verificar la conexión a la base de datos
+  // Verificar la conexión inicial
   db.getConnection((err, connection) => {
     if (err) {
       console.error('Error al conectar a la base de datos:', err.stack);
@@ -198,6 +198,18 @@
     console.log('Conexión a la base de datos exitosa');
     connection.release();
   });
+
+  // ✅ Manejo de errores global del pool (agrega aquí)
+  db.on('error', (err) => {
+    console.error('🛑 Error en el pool de conexiones MySQL:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+      console.warn('⚠️ Conexión perdida con MySQL. Intentando reconectar...');
+      // No hace falta reconectar manualmente, el pool se encarga
+    } else {
+      throw err;
+    }
+  });
+
 
   // Función para generar el token
   const generateToken = (user) => {
@@ -410,51 +422,55 @@
 
 
   // Endpoint de autenticación con Google
-  app.post('/auth', (req, res) => {
-    const { google_id, nombre, correo, imagen_perfil } = req.body;
+ app.post('/auth', (req, res) => {
+  const { google_id, nombre, correo, imagen_perfil } = req.body;
 
-    if (!google_id || !correo) {
-      return res.status(400).json({ message: 'Faltan datos requeridos' });
+  if (!google_id || !correo) {
+    return res.status(400).json({ message: 'Faltan datos requeridos' });
+  }
+
+  db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
+    if (err) {
+      console.error('❌ Error al consultar el usuario:', err);
+      return res.status(500).json({ message: 'Error en el servidor', detalle: err.message });
     }
 
-    db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
-      if (err) {
-        console.error('Error al consultar el usuario:', err);
-        return res.status(500).json({ message: 'Error en el servidor' });
-      }
+    let usuario;
 
-      let usuario;
-      if (result.length === 0) {
-        db.query(
-          'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo) VALUES (?, ?, ?, ?, ?)',
-          [google_id, nombre, correo, imagen_perfil, 'comprador', false],
-          (err, insertResult) => {
+    if (result.length === 0) {
+      // Insertar nuevo usuario
+      db.query(
+        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo) VALUES (?, ?, ?, ?, ?)',
+        [google_id, nombre, correo, imagen_perfil, 'comprador'],
+        (err, insertResult) => {
+          if (err) {
+            console.error('❌ Error al insertar el nuevo usuario:', err);
+            return res.status(500).json({ message: 'Error en el servidor', detalle: err.message });
+          }
+
+          // Volver a consultar para obtener el usuario recién insertado
+          db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, newUserResult) => {
             if (err) {
-              console.error('Error al insertar el nuevo usuario:', err);
-              return res.status(500).json({ message: 'Error en el servidor' });
+              console.error('❌ Error al consultar el nuevo usuario:', err);
+              return res.status(500).json({ message: 'Error en el servidor', detalle: err.message });
             }
 
-            db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, newUserResult) => {
-              if (err) {
-                console.error('Error al consultar el nuevo usuario:', err);
-                return res.status(500).json({ message: 'Error en el servidor' });
-              }
+            usuario = newUserResult[0];
+            const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-              usuario = newUserResult[0];
-              const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            return res.status(200).json({ token, usuario });
+          });
+        }
+      );
+    } else {
+      // Usuario ya existe
+      usuario = result[0];
+      const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-              res.status(200).json({ token, usuario });
-            });
-          }
-        );
-      } else {
-        usuario = result[0];
-        const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-        res.status(200).json({ token, usuario });
-      }
-    });
+      return res.status(200).json({ token, usuario });
+    }
   });
+});
 
 
 
