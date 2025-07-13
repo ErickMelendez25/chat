@@ -15,7 +15,7 @@ import './TinkaDashboard.css';
 
 
 const API = 'https://tinka-production.up.railway.app/api';        // API de tu backend Node.js
-const API_TINKA = 'http://localhost:8001/api';      // API del modelo cuántico (FastAPI)
+const API_TINKA = 'https://microservicioqiskit-production.up.railway.app/api';      // API del modelo cuántico (FastAPI)
 
 
 const TinkaDashboard = () => {
