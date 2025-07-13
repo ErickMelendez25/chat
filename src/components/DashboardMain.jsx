@@ -14,7 +14,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cel
 import './TinkaDashboard.css';
 
 
-const API = 'http://localhost:5000/api';        // API de tu backend Node.js
+const API = 'https://tinka-production.up.railway.app/api';        // API de tu backend Node.js
 const API_TINKA = 'http://localhost:8001/api';      // API del modelo cuántico (FastAPI)
 
 
