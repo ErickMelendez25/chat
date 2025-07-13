@@ -46,8 +46,7 @@ const Login = () => {
       localStorage.setItem('authToken', response.data.token);
       localStorage.setItem('usuario', JSON.stringify(response.data.usuario));
 
-      // Obtener los terrenos después del login
-      await obtenerTerrenos(response.data.token); // Llamada a obtener los terrenos
+
 
       // Redirigir al dashboard después de obtener los terrenos
       navigate('/dashboard');
@@ -56,27 +55,7 @@ const Login = () => {
     }
   };
 
-  // Función para obtener la lista de terrenos
-  const obtenerTerrenos = async (token) => {
-    try {
-      // Verifica si estás en producción (Railway) o en desarrollo (localhost)
-      const apiUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://tinka-production.up.railway.app/api/terrenos' 
-      : 'http://localhost:5173/api/terrenos';
 
-      const response = await axios.get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setTerrenos(response.data); // Guarda los terrenos en el estado
-      console.log('Terrenos obtenidos:', response.data); // Depuración
-    } catch (error) {
-      console.error('Error al obtener terrenos:', error);
-      setErrorMessage('Hubo un error al obtener los terrenos');
-    }
-  };
 
   const handleGoogleLoginSuccess = async (response) => {
     setLoading(true);
@@ -173,19 +152,7 @@ const Login = () => {
         </div>
       </form>
 
-      {/* Muestra la lista de terrenos si están disponibles */}
-      {terrenos.length > 0 && (
-        <div className="terrenos-list">
-          <h2>Terrenos disponibles:</h2>
-          <ul>
-            {terrenos.map((terreno) => (
-              <li key={terreno.id}>
-                {terreno.titulo} - {terreno.precio} USD
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+
     </div>
   );
 };
