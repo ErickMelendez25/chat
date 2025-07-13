@@ -133,7 +133,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h1>Satélite Perú</h1>
+        <h1>TinkRuby</h1>
         
         <div>
           <label htmlFor="username">Correo</label>

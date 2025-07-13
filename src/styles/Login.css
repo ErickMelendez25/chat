@@ -1,173 +1,121 @@
-/* Estilo base para el formulario de login */
+/* Estilos generales */
 .login-container {
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 0%;
-  margin-top: 0vh;
-  background: linear-gradient(135deg, #2d2c4e, #0c9790); /* Gradiente de colores institucionales */
-  font-family: 'Roboto', sans-serif;
-  padding: 0 20px;
+  background: linear-gradient(135deg, #1f2f98, #09bfa5);
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Formulario */
 .login-form {
-  background-color: #fff;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  height: 530px;
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 480px;
+  max-width: 450px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  transition: transform 0.3s ease-in-out;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-.login-form:hover {
-  transform: translateY(-10px);
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Título */
-.login-form h2 {
-  margin-bottom: 30px;
-  font-size: 32px;
+/* Título principal */
+.login-form h1 {
+  font-size: 2rem;
+  margin-bottom: 1.8rem;
+  color: #154e6e;
   font-weight: 700;
-  color: #107a2a; /* Color institucional más fuerte */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-family: 'Poppins', sans-serif;
 }
 
-/* Etiquetas de los campos */
+/* Campos */
 .login-form label {
   display: block;
   text-align: left;
-  font-size: 16px;
-  margin-bottom: 8px;
-  color: #333;
+  margin-bottom: 6px;
+  font-size: 15px;
   font-weight: 600;
-  width: 100%;
+  color: #333;
 }
 
-/* Campos de entrada para el correo y la contraseña */
-.login-form input[type="email"],
-.login-form input[type="password"] {
+.login-form input {
   width: 100%;
-  padding: 16px;
-  margin: 16px 0;
-  border: 1px solid #ddd;
+  padding: 14px;
+  margin-bottom: 1.2rem;
+  border: 1px solid #ccc;
   border-radius: 8px;
-  font-size: 18px;
-  background-color: #f4f4f4;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  background-color: #f8f8f8;
+  transition: border-color 0.3s ease;
 }
 
-/* Enfoque en los campos (correo y contraseña) */
-.login-form input[type="email"]:focus,
-.login-form input[type="password"]:focus {
-  border-color: #3fb9ff;
+.login-form input:focus {
   outline: none;
-  box-shadow: 0 0 8px rgba(24, 178, 224, 0.5); /* Resaltado verde */
-  background-color: #fff;
+  border-color: #00b5ad;
+  background-color: #ffffff;
 }
 
 /* Botón de login */
-.login-form button {
-  width: 100%;
-  padding: 16px;
+.login-button {
+  padding: 14px;
   background-color: #154e6e;
+  color: white;
   border: none;
   border-radius: 8px;
-  color: white;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  margin-top: 0px;
+  margin-top: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.login-form button:hover {
+.login-button:hover {
   background-color: #1e8ebb;
-  color: rgb(255, 255, 255);
-  transform: translateY(-4px);
+  transform: translateY(-2px);
 }
 
-/* Enlaces de ayuda */
-.login-form .link {
-  display: block;
-  margin-top: 15px;
-  font-size: 14px;
-  color: #0069A5;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-/* Efecto hover en el enlace */
-.login-form .link:hover {
-  color: #47b905;
-  text-decoration: underline;
-}
-
-/* Estilos para el mensaje de error */
+/* Error */
 .error-message {
   color: #e74c3c;
   font-size: 14px;
-  margin-top: 10px;
+  margin-bottom: 1rem;
   font-weight: 600;
 }
 
-/* Contenedor del login con Google */
+/* Login con Google */
 .google-login-container {
-
-  text-align: center;
+  margin-top: 1.5rem;
 }
 
 .or-text {
+  color: #888;
   font-size: 14px;
-  color: #777;
-  margin-bottom: 10px;
-  font-weight: 600;
+  margin: 10px 0;
 }
 
-/* Personalización del botón de Google */
-.google-login-button {
-  width: 100%;
-  background-color: #4285F4;
-  color: white;
-  border: none;
-  padding: 14px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.google-login-button:hover {
-  background-color: #3367D6;
-}
-
-/* Respuesta móvil */
+/* Responsive */
 @media (max-width: 600px) {
   .login-form {
-    padding: 20px;
-    height: max-content;
+    padding: 2rem;
   }
 
-  .login-form h2 {
-    font-size: 24px;
+  .login-form h1 {
+    font-size: 1.6rem;
   }
 
-  .login-form input[type="email"],
-  .login-form input[type="password"],
-  .login-form button {
+  .login-button {
     font-size: 16px;
+  }
+
+  .login-form input {
+    font-size: 15px;
   }
 }
