@@ -59,7 +59,8 @@ const ejecutarModelo = async () => {
     });
     const data = await res.json();
     console.log('[DEBUG] Respuesta del modelo:', data); // <--- Agrega esto
-    alert(data.message || '✅ Modelo ejecutado correctamente');
+    alert(data.detalle || data.status || '✅ Modelo ejecutado correctamente');
+
     obtenerPredicciones();
   } catch (error) {
     console.error('Error ejecutando el modelo:', error);
