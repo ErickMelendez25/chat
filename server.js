@@ -497,7 +497,8 @@
 
       const user = result[0];
 
-      bcrypt.compare(password, user.password, (err, isMatch) => {
+      bcrypt.compare(password, user.contraseña, (err, isMatch) => {
+
         if (err) {
           console.error('Error al comparar las contraseñas:', err);
           return res.status(500).json({ message: 'Error en el servidor' });
