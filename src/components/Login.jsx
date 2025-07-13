@@ -26,8 +26,8 @@ const Login = () => {
     e.preventDefault();
 
     // Agregar los console.log aquí para depurar los valores de usuario y contraseña
-    console.log("Correo:", username);  // Muestra el correo ingresado
-    console.log("Contraseña:", password);  // Muestra la contraseña ingresada
+    //console.log("Correo:", username);  // Muestra el correo ingresado
+    //console.log("Contraseña:", password);  // Muestra la contraseña ingresada
 
     try {
       // Verifica si estás en producción (Railway) o en desarrollo (localhost)
@@ -85,7 +85,7 @@ const Login = () => {
     try {
       const { credential } = response;
       const userInfo = jwt_decode(credential);
-      console.log('Información del usuario decodificada:', userInfo);
+      //console.log('Información del usuario decodificada:', userInfo);
   
       // Limpiar localStorage
       localStorage.removeItem('authToken');
