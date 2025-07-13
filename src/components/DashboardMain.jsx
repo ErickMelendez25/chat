@@ -170,7 +170,7 @@ const ejecutarModelo = async () => {
     <section className="graficos-flex">
       <div className="grafico">
         <h3>🌌 Visualización Cuántica: Superposición y Colapso</h3>
-        <img src="http://localhost:8001/static/superposicion_colapso.png" alt="Colapso Cuántico" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+        <img src="https://microservicioqiskit-production.up.railway.app/static/superposicion_colapso.png" alt="Colapso Cuántico" style={{ maxWidth: '100%', borderRadius: '8px' }} />
         <p className="nota">* Simulación visual del principio de superposición colapsando a un resultado clásico.</p>
       </div>
 
