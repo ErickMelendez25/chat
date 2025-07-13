@@ -52,7 +52,7 @@ const TinkaDashboard = () => {
 
 const ejecutarModelo = async () => {
   try {
-    const res = await fetch(`${API_TINKA}/ejecutarmodelo`, {
+    const res = await fetch(`${API_TINKA}/ejecutarmodelos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ejecutar: true })  // ← porque tu endpoint espera este body
