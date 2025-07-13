@@ -498,7 +498,6 @@
       const user = result[0];
 
       bcrypt.compare(password, user.contraseña, (err, isMatch) => {
-
         if (err) {
           console.error('Error al comparar las contraseñas:', err);
           return res.status(500).json({ message: 'Error en el servidor' });
@@ -508,73 +507,71 @@
           return res.status(400).json({ message: 'Contraseña incorrecta' });
         }
 
-        // Inicializamos las variables de ID
+        const token = generateToken(user); // Tu función para generar token JWT
+
+        const baseUsuario = {
+          correo: user.correo,
+          rol: user.rol,
+          nombre: user.nombre,
+          imagen_perfil: user.imagen_perfil || null,
+        };
+
+        // Inicializamos IDs
         let id_estudiante = null;
         let id_asesor = null;
         let id_revisor = null;
-      
-        // Manejo según rol
+
+        // Rol: revisor
         if (user.rol === 'revisor') {
           db.query('SELECT id FROM revisores WHERE correo = ?', [user.correo], (err, revisorResult) => {
-            if (err) {
-              console.error('Error al consultar el revisor:', err);
-              return res.status(500).json({ message: 'Error en el servidor' });
-            }
+            if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
             id_revisor = revisorResult.length > 0 ? revisorResult[0].id : null;
-
-            const token = generateToken(user);
-            res.status(200).json({
+            return res.status(200).json({
               message: 'Login exitoso',
               token,
-              usuario: { correo: user.correo, rol: user.rol, id_estudiante: null, id_asesor: null, id_revisor },
+              usuario: { ...baseUsuario, id_estudiante, id_asesor, id_revisor }
             });
           });
+
+        // Rol: asesor
         } else if (user.rol === 'asesor') {
           db.query('SELECT id FROM asesores WHERE correo = ?', [user.correo], (err, asesorResult) => {
-            if (err) {
-              console.error('Error al consultar el asesor:', err);
-              return res.status(500).json({ message: 'Error en el servidor' });
-            }
+            if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
             id_asesor = asesorResult.length > 0 ? asesorResult[0].id : null;
 
             db.query('SELECT id FROM estudiantes WHERE correo = ?', [user.correo], (err, studentResult) => {
-              if (err) {
-                console.error('Error al consultar el estudiante:', err);
-                return res.status(500).json({ message: 'Error en el servidor' });
-              }
+              if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
               id_estudiante = studentResult.length > 0 ? studentResult[0].id : null;
 
-              const token = generateToken(user);
-              res.status(200).json({
+              return res.status(200).json({
                 message: 'Login exitoso',
                 token,
-                usuario: { correo: user.correo, rol: user.rol, id_estudiante, id_asesor, id_revisor: null },
+                usuario: { ...baseUsuario, id_estudiante, id_asesor, id_revisor: null }
               });
             });
           });
+
+        // Otros roles
         } else {
           db.query('SELECT id FROM usuarios WHERE correo = ?', [user.correo], (err, studentResult) => {
-            if (err) {
-              console.error('Error al consultar el usuario:', err);
-              return res.status(500).json({ message: 'Error en el servidor' });
-            }
+            if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
             id_estudiante = studentResult.length > 0 ? studentResult[0].id : null;
 
-            const token = generateToken(user);
-            res.status(200).json({
+            return res.status(200).json({
               message: 'Login exitoso',
               token,
-              usuario: { correo: user.correo, rol: user.rol, id_estudiante, id_asesor: null, id_revisor: null },
+              usuario: { ...baseUsuario, id_estudiante, id_asesor: null, id_revisor: null }
             });
           });
         }
       });
     });
   });
+
 
   // Rutas de usuarios y terrenos con autorización
   app.get('/api/usuarios', async (req, res) => {

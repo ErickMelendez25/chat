@@ -95,6 +95,22 @@ function DashboardHeader() {
   }, []); // Esta dependencia vacía asegura que se ejecute solo al montar el componente
 
   useEffect(() => {
+    const googleUser = localStorage.getItem('user');
+    const normalUser = localStorage.getItem('usuario');
+
+    if (googleUser) {
+      const googleData = JSON.parse(googleUser);
+      setUserPhoto(googleData.imagen_perfil || '');
+      setUserName(googleData.nombre || '');
+    } else if (normalUser) {
+      const userData = JSON.parse(normalUser);
+      setUserPhoto(userData.imagen_perfil || '');
+      setUserName(userData.nombre || '');
+    }
+  }, []);
+
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       const menu = document.querySelector('.menu-options');
       const avatar = document.querySelector('.user-photo-container');
