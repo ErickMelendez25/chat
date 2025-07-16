@@ -7,6 +7,7 @@
   background: linear-gradient(135deg, #1f2f98, #09bfa5);
   padding: 2rem;
   font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
 }
 
 /* Formulario */
@@ -21,14 +22,17 @@
   display: flex;
   flex-direction: column;
   animation: fadeIn 0.5s ease-in-out;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
+/* Animación */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Título principal */
+/* Título */
 .login-form h1 {
   font-size: 2rem;
   margin-bottom: 1.8rem;
@@ -55,6 +59,7 @@
   font-size: 16px;
   background-color: #f8f8f8;
   transition: border-color 0.3s ease;
+  box-sizing: border-box;
 }
 
 .login-form input:focus {
@@ -63,7 +68,7 @@
   background-color: #ffffff;
 }
 
-/* Botón de login */
+/* Botón */
 .login-button {
   padding: 14px;
   background-color: #154e6e;
@@ -82,7 +87,7 @@
   transform: translateY(-2px);
 }
 
-/* Error */
+/* Mensaje de error */
 .error-message {
   color: #e74c3c;
   font-size: 14px;
@@ -102,13 +107,14 @@
 }
 
 /* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .login-form {
     padding: 2rem;
+    max-width: 90%;
   }
 
   .login-form h1 {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
   }
 
   .login-button {
@@ -117,5 +123,25 @@
 
   .login-form input {
     font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-form {
+    padding: 1.5rem;
+    max-width: 100%;
+    border-radius: 10px;
+  }
+
+  .login-form h1 {
+    font-size: 1.5rem;
+  }
+
+  .login-button {
+    font-size: 15px;
+  }
+
+  .login-form input {
+    font-size: 14px;
   }
 }

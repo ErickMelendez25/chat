@@ -4,7 +4,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background-color:   #fbff00;
+    background: linear-gradient(to right, #fffb00, #fbff00);
     
     position: relative; /* Cambiar de 'fixed' a 'relative' */
     top: 0;
@@ -75,10 +75,14 @@
 }
 
 .logo-container img {
-    max-width: 100%;  /* Ajusta el tamaño máximo de la imagen a su contenedor */
-    height: 65px;     /* Mantiene la proporción de la imagen */
-    transition: transform 0.3s ease-in-out, opacity 0.5s ease-in-out;
+  width: auto;
+  height: auto;
+  max-height: 45px;   /* 👈 evita que sea muy pequeño */
+  max-width: 120px;   /* 👈 evita que sea muy grande */
+  object-fit: contain;
 }
+
+
 
 
 .logo-container img:nth-child(2) {
@@ -170,22 +174,25 @@
 
 /* Contenedor de la foto de perfil */
 .user-photo-container {
-    width: 50px;  /* Tamaño del contenedor */
-    height: 50px; /* Tamaño del contenedor */
-    border-radius: 50%; /* Hace el contenedor circular */
-    overflow: hidden; /* Asegura que cualquier contenido fuera del círculo se oculte */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 40px;  /* fijo, no % */
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+
 
 /* Imagen dentro del contenedor */
 .user-icon {
-    width: 100%;   /* La imagen ocupa el 100% del contenedor */
-    height: 100%;  /* La imagen ocupa el 100% del contenedor */
-    object-fit: cover; /* Asegura que la imagen cubra el área del contenedor sin distorsionarse */
-    border-radius: 50%; /* Hace la imagen circular */
+  width: 70%;
+  height: 70%;
+  object-fit: cover;
+  border-radius: 50%;
 }
+
 
 /* Estilos para el modal de confirmación */
 .modal-overlay {
@@ -285,6 +292,12 @@ body {
 
         font-size: 0.78rem;
     }
+    .user-icon {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        }
 }
 
 /* Para pantallas medianas (como tabletas o pantallas más pequeñas que 1024px) */
@@ -318,6 +331,13 @@ body {
     .user-info p {
         font-size: 12px;
         text-align: center;
+    }
+
+    .user-icon {
+    width: 70%;
+    height: 70%;
+    object-fit: cover;
+    border-radius: 50%;
     }
 }
 
@@ -457,7 +477,7 @@ body {
     }
 
     .logo-container img {
-        width: 75%; /* o por ejemplo 30% */
+        width: 100%; /* o por ejemplo 30% */
         height: auto;
         transition: transform 0.3s ease-in-out, opacity 0.5s ease-in-out;
     }
@@ -480,3 +500,6 @@ body {
     
     
 }
+
+
+

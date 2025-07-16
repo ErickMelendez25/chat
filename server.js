@@ -595,12 +595,40 @@
   });
 
   ///TINKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--------------------------------
+// GET /api/sorteos?page=1&limit=15
   app.get('/api/sorteos', (req, res) => {
-    db.query('SELECT fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa FROM sorteos ORDER BY fecha DESC', (err, rows) => {
-      if (err) return res.status(500).json({ error: 'Error al cargar sorteos' });
-      res.json(rows);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 15;
+    const offset = (page - 1) * limit;
+
+    const sqlData = `
+      SELECT id, sorteo, fecha, bola1, bola2, bola3, bola4, bola5, bola6,
+            boliyapa, adicional1, adicional2, adicional3,
+            adicional4, adicional5, adicional6, sorteo_extra
+      FROM sorteos
+      ORDER BY fecha DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const sqlTotal = `SELECT COUNT(*) AS total FROM sorteos`;
+
+    db.query(sqlTotal, (err, totalResult) => {
+      if (err) return res.status(500).json({ error: 'Error al contar sorteos' });
+      const total = totalResult[0].total;
+
+      db.query(sqlData, [limit, offset], (err, rows) => {
+        if (err) return res.status(500).json({ error: 'Error al cargar sorteos paginados' });
+
+        res.json({
+          data: rows,
+          total,
+          page,
+          totalPages: Math.ceil(total / limit)
+        });
+      });
     });
   });
+
 
   app.get('/api/frecuencias', (req, res) => {
     db.query('SELECT numero, veces_salida FROM frecuencias ORDER BY numero ASC', (err, rows) => {
@@ -611,12 +639,25 @@
 
 
   app.post('/api/sorteos', (req, res) => {
-    const { fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa } = req.body;
+    const {
+      fecha, sorteo, bola1, bola2, bola3, bola4, bola5, bola6,
+      boliyapa, adicional1, adicional2, adicional3,
+      adicional4, adicional5, adicional6, sorteo_extra
+    } = req.body;
+
     const sql = `
-      INSERT INTO sorteos (fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO sorteos (
+        fecha, sorteo, bola1, bola2, bola3, bola4, bola5, bola6,
+        boliyapa, adicional1, adicional2, adicional3,
+        adicional4, adicional5, adicional6, sorteo_extra
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    const values = [fecha, bola1, bola2, bola3, bola4, bola5, bola6, boliyapa];
+
+    const values = [
+      fecha, sorteo, bola1, bola2, bola3, bola4, bola5, bola6,
+      boliyapa, adicional1, adicional2, adicional3,
+      adicional4, adicional5, adicional6, sorteo_extra
+    ];
 
     db.query(sql, values, (err, result) => {
       if (err) {
@@ -624,17 +665,49 @@
         return res.status(500).json({ error: 'Error al insertar sorteo' });
       }
 
-      // Opcional: actualizamos frecuencias con un procedimiento/función adicional
       res.json({ message: 'Sorteo agregado exitosamente', id: result.insertId });
     });
   });
 
+
+  app.put('/api/sorteos', (req, res) => {
+  const {
+    fecha, sorteo, bola1, bola2, bola3, bola4, bola5, bola6,
+    boliyapa, adicional1, adicional2, adicional3,
+    adicional4, adicional5, adicional6, sorteo_extra
+  } = req.body;
+
+  const sql = `
+    UPDATE sorteos SET
+      sorteo = ?, bola1 = ?, bola2 = ?, bola3 = ?, bola4 = ?, bola5 = ?, bola6 = ?,
+      boliyapa = ?, adicional1 = ?, adicional2 = ?, adicional3 = ?, adicional4 = ?, adicional5 = ?, adicional6 = ?, sorteo_extra = ?
+    WHERE fecha = ?
+  `;
+
+  const values = [
+    sorteo, bola1, bola2, bola3, bola4, bola5, bola6,
+    boliyapa, adicional1, adicional2, adicional3, adicional4, adicional5, adicional6,
+    sorteo_extra, fecha
+  ];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Error actualizando sorteo:', err);
+      return res.status(500).json({ error: 'Error al actualizar sorteo' });
+    }
+
+    res.json({ message: 'Sorteo actualizado correctamente' });
+  });
+});
+
   app.get('/api/predicciones', (req, res) => {
-    db.query('SELECT * FROM predicciones ORDER BY id DESC LIMIT 10', (err, resultados) => {
+    const limit = parseInt(req.query.limit) || 15;
+    db.query('SELECT * FROM predicciones ORDER BY id DESC LIMIT ?', [limit], (err, resultados) => {
       if (err) return res.status(500).json({ error: 'Error al consultar predicciones' });
       res.json(resultados);
     });
   });
+
 
 
 

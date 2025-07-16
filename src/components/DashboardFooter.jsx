@@ -5,6 +5,8 @@ import '../styles/DashboardFooter.css';
 function DashboardFooter() {
   const [showText, setShowText] = useState(false); // Estado para manejar la visibilidad del texto
   const fullText = "La mejor combinación para tu próxima jugada";
+  const year = new Date().getFullYear(); // Año actual dinámico
+
 
   useEffect(() => {
     // Hacemos que el texto aparezca después de un pequeño retraso
@@ -31,6 +33,8 @@ function DashboardFooter() {
           <h3>{fullText}</h3>
         </div>
       )}
+      <p className="copyright">© {year} TinkRuby. Todos los derechos reservados.</p>
+
 
     </footer>
   );
