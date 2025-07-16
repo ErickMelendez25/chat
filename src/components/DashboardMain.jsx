@@ -123,7 +123,7 @@ const guardarSorteo = async () => {
 
 const ejecutarModelo = async () => {
   try {
-    setCargandoModelo(true); // 🔄 mostrar animación
+    setCargandoModelo(true);
 
     const res = await fetch(`${API_TINKA}/ejecutarmodelos`, {
       method: 'POST',
@@ -132,24 +132,30 @@ const ejecutarModelo = async () => {
     });
 
     const data = await res.json();
+
+    if (data.error) {
+      console.error('⚠️ Error desde el backend:', data.error);
+      alert('❌ Error al ejecutar el modelo: ' + data.error);
+      return;
+    }
+
     console.log('[DEBUG] Respuesta del modelo:', data);
     alert(data.detalle || data.status || '✅ Modelo ejecutado correctamente');
 
-    // ✅ Actualizar predicciones directamente si el backend las devuelve
     if (data.predicciones) {
-      setPredicciones(data.predicciones); // 👈 actualiza sin volver a llamar al backend
+      setPredicciones(data.predicciones);
     } else {
-      // 🕒 Si no las devuelve, esperar y luego hacer fetch a /predicciones
       setTimeout(() => obtenerPredicciones(), 2000);
     }
 
   } catch (error) {
-    console.error('Error ejecutando el modelo:', error);
-    alert('❌ Error al ejecutar el modelo');
+    console.error('❌ Error general al ejecutar el modelo:', error);
+    alert('❌ Error inesperado al ejecutar el modelo');
   } finally {
-    setCargandoModelo(false); // 🔄 ocultar animación
+    setCargandoModelo(false);
   }
 };
+
 
 
 
