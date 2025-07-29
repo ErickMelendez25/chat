@@ -1,6 +1,6 @@
 /* Estilos para el pie de página */
 .dashboard-footer {
-  background: linear-gradient(to right, #fffb00, #fbff00); /* Gradiente dorado */
+  background: linear-gradient(to right, #ffffff, #ffffff); /* Gradiente dorado */
   padding:  8px 10px; 
   color: #222; /* Mejor contraste que blanco */
   display: flex;

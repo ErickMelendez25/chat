@@ -250,6 +250,58 @@
   //});
 
 
+
+
+
+
+ app.post('/api/mensajes', (req, res) => {
+  const { emisor_id, receptor_id, mensaje, tipo, url_archivo } = req.body;
+
+  console.log("🟢 POST /api/mensajes");
+  console.log("Datos recibidos:", req.body);
+
+  if (!emisor_id || !receptor_id) {
+    console.warn("⚠️ Datos incompletos");
+    return res.status(400).json({ message: 'Datos incompletos' });
+  }
+
+  const sql = `
+    INSERT INTO mensajes (emisor_id, receptor_id, mensaje, tipo, url_archivo)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(sql, [emisor_id, receptor_id, mensaje, tipo, url_archivo], (err, result) => {
+    if (err) {
+      console.error("❌ Error al guardar mensaje:", err);
+      return res.status(500).json({ message: 'Error al guardar mensaje' });
+    }
+    console.log("✅ Mensaje guardado con ID:", result.insertId);
+    res.json({ message: 'Mensaje enviado', id: result.insertId });
+  });
+});
+
+app.get('/api/mensajes/:user1/:user2', (req, res) => {
+  const { user1, user2 } = req.params;
+
+  console.log(`🔵 GET /api/mensajes/${user1}/${user2}`);
+
+  const sql = `
+    SELECT * FROM mensajes
+    WHERE (emisor_id = ? AND receptor_id = ?) OR (emisor_id = ? AND receptor_id = ?)
+    ORDER BY fecha_envio ASC
+  `;
+
+  db.query(sql, [user1, user2, user2, user1], (err, rows) => {
+    if (err) {
+      console.error("❌ Error al obtener mensajes:", err);
+      return res.status(500).json({ message: 'Error al obtener mensajes' });
+    }
+    res.json(rows);
+  });
+});
+
+
+
   // API: Zonas agrícolas
   // Traer zonas incluyendo región, provincia y distrito
   // API: Zonas agrícolas con IDs completos
@@ -422,7 +474,7 @@
 
 
   // Endpoint de autenticación con Google
- app.post('/auth', (req, res) => {
+app.post('/auth', (req, res) => {
   const { google_id, nombre, correo, imagen_perfil } = req.body;
 
   if (!google_id || !correo) {
@@ -438,17 +490,17 @@
     let usuario;
 
     if (result.length === 0) {
-      // Insertar nuevo usuario
+      // Insertar nuevo usuario con estado = 1 (activo)
       db.query(
-        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo) VALUES (?, ?, ?, ?, ?)',
-        [google_id, nombre, correo, imagen_perfil, 'comprador'],
+        'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, estado) VALUES (?, ?, ?, ?, ?, ?)',
+        [google_id, nombre, correo, imagen_perfil, 'comprador', 1],
         (err, insertResult) => {
           if (err) {
             console.error('❌ Error al insertar el nuevo usuario:', err);
             return res.status(500).json({ message: 'Error en el servidor', detalle: err.message });
           }
 
-          // Volver a consultar para obtener el usuario recién insertado
+          // Consultar usuario recién insertado
           db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, newUserResult) => {
             if (err) {
               console.error('❌ Error al consultar el nuevo usuario:', err);
@@ -463,14 +515,63 @@
         }
       );
     } else {
-      // Usuario ya existe
+      // Usuario ya existe, actualizar su estado a activo (1)
       usuario = result[0];
-      const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-      return res.status(200).json({ token, usuario });
+      db.query('UPDATE usuarios SET estado = ? WHERE id = ?', [1, usuario.id], (err) => {
+        if (err) {
+          console.error('❌ Error al actualizar el estado del usuario:', err);
+          return res.status(500).json({ message: 'Error al actualizar estado', detalle: err.message });
+        }
+
+        const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        return res.status(200).json({ token, usuario });
+      });
     }
   });
 });
+
+
+
+app.post('/logout', (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'ID de usuario requerido' });
+  }
+
+  db.query('UPDATE usuarios SET estado = ? WHERE id = ?', [0, userId], (err) => {
+    if (err) {
+      console.error('❌ Error al actualizar estado del usuario:', err);
+      return res.status(500).json({ message: 'Error al cerrar sesión' });
+    }
+
+    console.log(`👤 Usuario ${userId} marcado como inactivo`);
+    res.status(200).json({ message: 'Sesión cerrada correctamente' });
+  });
+});
+
+
+io.on('connection', socket => {
+  console.log('Cliente conectado');
+
+  // 🔵 Cuando alguien se conecta, notificar a todos
+  socket.broadcast.emit('actualizar-usuarios');
+
+  // ✅ Escuchar evento desde el frontend cuando alguien se loguea
+  socket.on('usuario-conectado', (userId) => {
+    console.log(`Usuario ${userId} conectado (emitido desde frontend)`);
+    // 🔁 Enviar a todos (incluido el que se conectó)
+    io.emit('actualizar-usuarios');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado');
+    socket.broadcast.emit('actualizar-usuarios');
+  });
+});
+
+
 
 
 

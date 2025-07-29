@@ -3,15 +3,24 @@ import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios'; 
 import '../styles/DashboardHeader.css';
 
-const handleLogout = () => {
-  // Eliminar el token y el rol del localStorage
+const handleLogout = async () => {
+  try {
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+    if (usuario?.id) {
+      await axios.post('http://localhost:5000/logout', { userId: usuario.id });
+    }
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error);
+  }
+
   localStorage.removeItem('authToken');
   localStorage.removeItem('userRole');
-  localStorage.removeItem('usuario');  // Limpiar también los datos del usuario
-  localStorage.removeItem('user'); // Limpiar los datos de Google del usuario
-  // Redirigir al login
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('user');
   window.location.href = '/';
 };
+
 
 function DashboardHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -136,7 +145,7 @@ function DashboardHeader() {
     <header className="dashboard-header">
       <div className="logo-container">
         <Link to="/dashboard" className="logo-link">
-          <img src="/images/cuanti.png" alt="Logo" className={titleVisible ? 'logo-animate' : ''} />
+          <img src="/images/conti.png" alt="Logo" className={titleVisible ? 'logo-animate' : ''} />
         </Link>
 
       </div>
@@ -152,7 +161,7 @@ function DashboardHeader() {
             <div className="navbar-container">
               <nav className="navbar">
                 <ul className="header-options">
-                  <li><span>Hola, {user.nombre}</span></li> {/* Mostrar el nombre del usuario */}
+                  <li><span>Hola, {user.nombre}</span> No olvides cerrar sesión , click en el ícono de tu usario </li> {/* Mostrar el nombre del usuario */}
                 </ul>
               </nav>
             </div>

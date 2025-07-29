@@ -112,7 +112,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h1>TinkRuby</h1>
+        <h1>Universidad Continental</h1>
         
         <div>
           <label htmlFor="username">Correo</label>
@@ -142,7 +142,11 @@ const Login = () => {
           {loading ? 'Cargando...' : 'Iniciar sesión'}
         </button>
 
+        
+
         <div className="google-login-container">
+          <label htmlFor="password">Inicia sesíon aquí por favor, más rápido con google</label>
+          <label htmlFor="password">Click en Acceder con google y elige tu cuenta</label>
           <h1 className="or-text"> </h1>
           <GoogleLogin 
             onSuccess={handleGoogleLoginSuccess} 

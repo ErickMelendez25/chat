@@ -4,7 +4,7 @@ import '../styles/DashboardFooter.css';
 
 function DashboardFooter() {
   const [showText, setShowText] = useState(false); // Estado para manejar la visibilidad del texto
-  const fullText = "La mejor combinación para tu próxima jugada";
+  const fullText = "El mejor asistente virtual para tú matrícula";
   const year = new Date().getFullYear(); // Año actual dinámico
 
 
@@ -33,7 +33,7 @@ function DashboardFooter() {
           <h3>{fullText}</h3>
         </div>
       )}
-      <p className="copyright">© {year} TinkRuby. Todos los derechos reservados.</p>
+      <p className="copyright">© {year} TinkRuby Universidad Continental. Todos los derechos reservados.</p>
 
 
     </footer>

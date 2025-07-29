@@ -4,8 +4,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background: linear-gradient(to right, #fffb00, #fbff00);
-    
+    background: linear-gradient(to right, #b109ff, #b907ff);
+    color: #ffffff;
     position: relative; /* Cambiar de 'fixed' a 'relative' */
     top: 0;
     left: 0;
