@@ -3,8 +3,8 @@ import { io } from 'socket.io-client';
 import EmojiPicker from 'emoji-picker-react';
 
 
-const API = 'http://localhost:5000/api';
-const socket = io('http://localhost:5000'); // 🔧 agrega esta línea
+const API = 'https://chat-production-c0ef.up.railway.app/api';
+const socket = io('https://chat-production-c0ef.up.railway.app'); // 🔧 agrega esta línea
 
 const DashboardMain = () => {
   const [usuario, setUsuario] = useState(null);

@@ -8,7 +8,7 @@ const handleLogout = async () => {
     const usuario = JSON.parse(localStorage.getItem('usuario'));
 
     if (usuario?.id) {
-      await axios.post('http://localhost:5000/logout', { userId: usuario.id });
+      await axios.post('https://chat-production-c0ef.up.railway.app/logout', { userId: usuario.id });
     }
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
