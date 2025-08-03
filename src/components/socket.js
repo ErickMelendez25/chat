@@ -1,4 +1,6 @@
-// frontend/src/socket.js
-import { io } from "socket.io-client";
-const socket = io('http://localhost:5000'); // o IP de tu servidor
+// socket.js
+import { io } from 'socket.io-client';
+
+const socket = io('https://chat-production-c0ef.up.railway.app'); // sin /socket.io/
+
 export default socket;

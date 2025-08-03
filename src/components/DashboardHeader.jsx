@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios'; 
 import '../styles/DashboardHeader.css';
+import socket from './socket';
+
 
 const handleLogout = async () => {
   try {
@@ -10,6 +12,10 @@ const handleLogout = async () => {
     if (usuario?.id) {
       await axios.post('https://chat-production-c0ef.up.railway.app/logout', { userId: usuario.id });
     }
+
+    // 🔌 Desconectar socket antes de salir
+    socket.disconnect();
+    console.log('🔌 Socket desconectado al cerrar sesión.');
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
   }
@@ -20,6 +26,7 @@ const handleLogout = async () => {
   localStorage.removeItem('user');
   window.location.href = '/';
 };
+
 
 
 function DashboardHeader() {
@@ -145,7 +152,7 @@ function DashboardHeader() {
     <header className="dashboard-header">
       <div className="logo-container">
         <Link to="/dashboard" className="logo-link">
-          <img src="/images/conti.png" alt="Logo" className={titleVisible ? 'logo-animate' : ''} />
+          <img src="/images/logo.png" alt="Logo" className={titleVisible ? 'logo-animate' : ''} />
         </Link>
 
       </div>
@@ -161,7 +168,12 @@ function DashboardHeader() {
             <div className="navbar-container">
               <nav className="navbar">
                 <ul className="header-options">
-                  <li><span>Hola, {user.nombre}</span> No olvides cerrar sesión , click en el ícono de tu usario </li> {/* Mostrar el nombre del usuario */}
+                    <li className="saludo-usuario">
+
+                    <strong>Hola, {user.nombre}</strong><br />
+                    No olvides cerrar sesión. Haz click en el ícono de usuario.
+                  </li>
+
                 </ul>
               </nav>
             </div>

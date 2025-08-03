@@ -1,5 +1,6 @@
-  import nodemailer from 'nodemailer';
+// 📦 Importaciones
   import express from 'express';
+  import nodemailer from 'nodemailer';
   import mysql from 'mysql2';
   import bcrypt from 'bcryptjs';
   import cors from 'cors';
@@ -9,46 +10,132 @@
   import jwt from 'jsonwebtoken';
   import bodyParser from 'body-parser';
   import dotenv from 'dotenv';
-  import { Server as SocketIO } from 'socket.io'
-
-  import { spawn } from 'child_process';
-
-
-
-  dotenv.config({ path: './.env', override: true });
-  console.log('🔧 DB_HOST:', process.env.DB_HOST);
-  console.log('🔧 DB_PORT:', process.env.DB_PORT);
-  console.log('🔧 DB_USER:', process.env.DB_USER);
-  console.log('🔧 DB_NAME:', process.env.DB_NAME);
-
-  //para la conexion con arduino
   import { SerialPort } from 'serialport';
   import { ReadlineParser } from '@serialport/parser-readline';
-  import { WebSocketServer } from 'ws';
   import http from 'http';
+  import { Server } from 'socket.io';
+  import rutas from './routes/index.js';
 
+
+
+ // 📂 Configuración inicial
+  dotenv.config();
   const app = express();
+  const server = http.createServer(app);
+  const io = new Server(server, {
+    cors: {
+      origin: '*', // Puedes cambiar esto por la URL de tu frontend
+      methods: ['GET', 'POST'],
+    },
+  });
 
-  const server = http.createServer(app); // ✅ Aquí creas el server
-  // WebSocket Server
-  const wss = new WebSocketServer({ server });
+  const port = process.env.PORT ||8080;
+
+  // 🔧 Middlewares
+  app.use(cors());
+  app.use(express.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use('/uploads', express.static('uploads'));
+    
+    // WebSocket Server
+
+  const usuariosConectados = new Set();
 
 
-  const io = new SocketIO(server, {
-    cors: { origin: '*' },
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,  // correo remitente
+      pass: process.env.EMAIL_PASS   // contraseña de aplicación
+    }
   });
 
 
-  wss.on('connection', (ws) => {
-    console.log('Cliente conectado via WebSocket');
 
-    ws.on('message', (message) => {
-      console.log('Mensaje recibido:', message);
+  const enviarCorreoLogin = async (usuario) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: '72848846@continental.edu.pe',
+    subject: '🔐 Nuevo inicio de sesión',
+    text: `El usuario ${usuario.nombre} (${usuario.correo}) ha iniciado sesión correctamente.`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Correo de login enviado.');
+  } catch (error) {
+    console.error('❌ Error al enviar correo de login:', error);
+  }
+};
+
+  // 📡 WebSocket
+io.on('connection', (socket) => {
+  console.log('🟢 Cliente conectado via Socket.IO');
+
+  socket.on('usuario-conectado', (userId) => {
+    socket.userId = userId;
+    usuariosConectados.add(userId);
+    socket.join(`usuario_${userId}`);
+    console.log(`📡 Usuario ${userId} unido a su sala personalizada`);
+
+    // Emitir lista actualizada a todos
+    io.emit('estado-usuarios', Array.from(usuariosConectados));
+  });
+
+  socket.on('nuevo-mensaje', (data) => {
+    const { emisor_id, receptor_id, mensaje, tipo } = data;
+    console.log(`✉️ Nuevo mensaje de ${emisor_id} a ${receptor_id}: ${mensaje}`);
+    socket.to(`usuario_${receptor_id}`).emit('nuevo-mensaje', data);
+  });
+
+  socket.on('disconnect', () => {
+    if (socket.userId) {
+      usuariosConectados.delete(socket.userId);
+      console.log(`🔴 Usuario ${socket.userId} desconectado`);
+      // Emitir lista actualizada a todos
+      io.emit('estado-usuarios', Array.from(usuariosConectados));
+    } else {
+      console.log('🔴 Cliente desconectado sin identificarse');
+    }
+  });
+
+
+
+  socket.on("llamada-oferta", ({ emisorId, receptorId, offer }) => {
+    console.log(`📞 Oferta de llamada recibida de ${emisorId} para ${receptorId}`);
+  io.to(`usuario_${receptorId}`).emit("llamada-oferta", { emisorId, offer });
+});
+
+
+
+    socket.on("llamada-respuesta", ({ emisorId, receptorId, answer }) => {
+      io.to(`usuario_${emisorId}`).emit("llamada-respuesta", { answer });
     });
 
-    ws.send(JSON.stringify({ estado: "libre", cochera: 3 }));
+    socket.on("llamada-colgada", ({ emisorId, receptorId }) => {
+      io.to(`usuario_${receptorId}`).emit("llamada-colgada");
+      io.to(`usuario_${emisorId}`).emit("llamada-colgada"); // notificar también al que colgó
+    });
 
-  });
+    socket.on("llamada-rechazada", ({ emisorId }) => {
+      io.to(`usuario_${emisorId}`).emit("llamada-rechazada");
+    });
+
+    
+
+});
+
+
+
+
+
+  // 🔀 Rutas
+  app.use('/api', rutas);
+
+
+
 
 
   // Variable para manejar el estado de conexión del puerto COM14
@@ -139,13 +226,13 @@
 
 
 
-  const port = process.env.PORT ||8080;
+  
 
   const __dirname = path.resolve();  // Obtener la ruta del directorio actual (correcto para Windows)
 
   // Configura CORS para permitir solicitudes solo desde tu frontend
   const corsOptions = {
-    origin: ['https://tinka-production.up.railway.app', 'http://localhost:5173', 'https://continental.academionlinegpt.com','http://localhost:5000','http://localhost:8000'],
+    origin: ['https://tinka-production.up.railway.app', 'http://localhost:5173', 'http://universidadcontinental.academionlinegpt.com','http://localhost:5000','http://localhost:8000'],
     methods: 'GET, POST, PUT, DELETE',
     allowedHeaders: 'Content-Type, Authorization',
   };
@@ -188,6 +275,18 @@
     connectionLimit:    10,
     queueLimit:         0,
   });
+
+    function actualizarEstadoUsuario(userId, nuevoEstado) {
+    const sql = "UPDATE usuarios SET estado = ? WHERE id = ?";
+    db.query(sql, [nuevoEstado, userId], (err, resultado) => {
+      if (err) {
+        console.error(`❌ Error al actualizar estado del usuario ${userId}:`, err);
+      } else {
+        console.log(`🔄 Estado del usuario ${userId} actualizado a ${nuevoEstado}`);
+      }
+    });
+  }
+
 
   // Verificar la conexión inicial
   db.getConnection((err, connection) => {
@@ -238,10 +337,7 @@
 
   ///CONEXION QISKITTT-------------////////////////////////////////////////////////////////////////////
   // Conexión WebSocket
-  io.on('connection', (socket) => {
-    console.log('Cliente conectado via WebSocket');
-    socket.on('disconnect', () => console.log('Cliente desconectado'));
-  });
+
 
   //io.emit('modelo_ejecutado', {
     //zona_id,
@@ -299,6 +395,9 @@ app.get('/api/mensajes/:user1/:user2', (req, res) => {
     res.json(rows);
   });
 });
+
+
+
 
 
 
@@ -482,50 +581,37 @@ app.post('/auth', (req, res) => {
   }
 
   db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
-    if (err) {
-      console.error('❌ Error al consultar el usuario:', err);
-      return res.status(500).json({ message: 'Error en el servidor', detalle: err.message });
-    }
+    if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
     let usuario;
 
     if (result.length === 0) {
-      // Insertar nuevo usuario con estado = 1 (activo)
       db.query(
         'INSERT INTO usuarios (google_id, nombre, correo, imagen_perfil, tipo, estado) VALUES (?, ?, ?, ?, ?, ?)',
         [google_id, nombre, correo, imagen_perfil, 'comprador', 1],
         (err, insertResult) => {
-          if (err) {
-            console.error('❌ Error al insertar el nuevo usuario:', err);
-            return res.status(500).json({ message: 'Error en el servidor', detalle: err.message });
-          }
+          if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
-          // Consultar usuario recién insertado
-          db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, newUserResult) => {
-            if (err) {
-              console.error('❌ Error al consultar el nuevo usuario:', err);
-              return res.status(500).json({ message: 'Error en el servidor', detalle: err.message });
-            }
+          db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], async (err, newUserResult) => {
+            if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
             usuario = newUserResult[0];
             const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-            return res.status(200).json({ token, usuario });
+            await enviarCorreoLogin(usuario); // 🚀 Envío del correo
+            res.status(200).json({ token, usuario });
           });
         }
       );
     } else {
-      // Usuario ya existe, actualizar su estado a activo (1)
       usuario = result[0];
-
-      db.query('UPDATE usuarios SET estado = ? WHERE id = ?', [1, usuario.id], (err) => {
-        if (err) {
-          console.error('❌ Error al actualizar el estado del usuario:', err);
-          return res.status(500).json({ message: 'Error al actualizar estado', detalle: err.message });
-        }
+      db.query('UPDATE usuarios SET estado = ? WHERE id = ?', [1, usuario.id], async (err) => {
+        if (err) return res.status(500).json({ message: 'Error al actualizar estado' });
 
         const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        return res.status(200).json({ token, usuario });
+
+        await enviarCorreoLogin(usuario); // 🚀 Envío del correo
+        res.status(200).json({ token, usuario });
       });
     }
   });
@@ -560,15 +646,27 @@ io.on('connection', socket => {
 
   // ✅ Escuchar evento desde el frontend cuando alguien se loguea
   socket.on('usuario-conectado', (userId) => {
-    console.log(`Usuario ${userId} conectado (emitido desde frontend)`);
-    // 🔁 Enviar a todos (incluido el que se conectó)
-    io.emit('actualizar-usuarios');
+    socket.userId = userId;
+    usuariosConectados.add(userId);
+    socket.join(`usuario_${userId}`);
+    console.log(`📡 Usuario ${userId} unido a su sala personalizada`);
+
+    actualizarEstadoUsuario(userId, 1); // ← ACTIVO
+
+    io.emit('estado-usuarios', Array.from(usuariosConectados));
   });
 
   socket.on('disconnect', () => {
-    console.log('Cliente desconectado');
-    socket.broadcast.emit('actualizar-usuarios');
+    if (socket.userId) {
+      usuariosConectados.delete(socket.userId);
+      console.log(`🔴 Usuario ${socket.userId} desconectado`);
+      actualizarEstadoUsuario(socket.userId, 0); // ← INACTIVO
+      io.emit('estado-usuarios', Array.from(usuariosConectados));
+    } else {
+      console.log('🔴 Cliente desconectado sin identificarse');
+    }
   });
+
 });
 
 
@@ -579,99 +677,78 @@ io.on('connection', socket => {
 
 
   // Ruta de login
-  app.post('/login', (req, res) => {
-    const { correo, password } = req.body;
+// Ruta de login
+app.post('/login', (req, res) => {
+  const { correo, password } = req.body;
 
-    if (!correo || !password) {
-      return res.status(400).json({ message: 'Correo y contraseña son requeridos' });
-    }
+  if (!correo || !password) {
+    return res.status(400).json({ message: 'Correo y contraseña son requeridos' });
+  }
 
-    db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
-      if (err) {
-        console.error('Error al consultar el usuario:', err);
-        return res.status(500).json({ message: 'Error en el servidor' });
-      }
+  db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
-      if (result.length === 0) {
-        return res.status(404).json({ message: 'Usuario no encontrado' });
-      }
+    if (result.length === 0) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-      const user = result[0];
+    const user = result[0];
 
-      bcrypt.compare(password, user.contraseña, (err, isMatch) => {
-        if (err) {
-          console.error('Error al comparar las contraseñas:', err);
-          return res.status(500).json({ message: 'Error en el servidor' });
-        }
+    bcrypt.compare(password, user.contraseña, async (err, isMatch) => {
+      if (err) return res.status(500).json({ message: 'Error en el servidor' });
+      if (!isMatch) return res.status(400).json({ message: 'Contraseña incorrecta' });
 
-        if (!isMatch) {
-          return res.status(400).json({ message: 'Contraseña incorrecta' });
-        }
+      const token = generateToken(user);
+      const baseUsuario = {
+        correo: user.correo,
+        rol: user.rol,
+        nombre: user.nombre,
+        imagen_perfil: user.imagen_perfil || null,
+      };
 
-        const token = generateToken(user); // Tu función para generar token JWT
+      let id_estudiante = null;
+      let id_asesor = null;
+      let id_revisor = null;
 
-        const baseUsuario = {
-          correo: user.correo,
-          rol: user.rol,
-          nombre: user.nombre,
-          imagen_perfil: user.imagen_perfil || null,
-        };
+      const enviarRespuesta = async (usuarioCompleto) => {
+        await enviarCorreoLogin(baseUsuario); // 🚀 Envío del correo
+        res.status(200).json({
+          message: 'Login exitoso',
+          token,
+          usuario: usuarioCompleto
+        });
+      };
 
-        // Inicializamos IDs
-        let id_estudiante = null;
-        let id_asesor = null;
-        let id_revisor = null;
+      if (user.rol === 'revisor') {
+        db.query('SELECT id FROM revisores WHERE correo = ?', [user.correo], async (err, revisorResult) => {
+          if (err) return res.status(500).json({ message: 'Error en el servidor' });
+          id_revisor = revisorResult.length > 0 ? revisorResult[0].id : null;
+          await enviarRespuesta({ ...baseUsuario, id_estudiante, id_asesor, id_revisor });
+        });
 
-        // Rol: revisor
-        if (user.rol === 'revisor') {
-          db.query('SELECT id FROM revisores WHERE correo = ?', [user.correo], (err, revisorResult) => {
-            if (err) return res.status(500).json({ message: 'Error en el servidor' });
+      } else if (user.rol === 'asesor') {
+        db.query('SELECT id FROM asesores WHERE correo = ?', [user.correo], (err, asesorResult) => {
+          if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
-            id_revisor = revisorResult.length > 0 ? revisorResult[0].id : null;
-            return res.status(200).json({
-              message: 'Login exitoso',
-              token,
-              usuario: { ...baseUsuario, id_estudiante, id_asesor, id_revisor }
-            });
-          });
+          id_asesor = asesorResult.length > 0 ? asesorResult[0].id : null;
 
-        // Rol: asesor
-        } else if (user.rol === 'asesor') {
-          db.query('SELECT id FROM asesores WHERE correo = ?', [user.correo], (err, asesorResult) => {
-            if (err) return res.status(500).json({ message: 'Error en el servidor' });
-
-            id_asesor = asesorResult.length > 0 ? asesorResult[0].id : null;
-
-            db.query('SELECT id FROM estudiantes WHERE correo = ?', [user.correo], (err, studentResult) => {
-              if (err) return res.status(500).json({ message: 'Error en el servidor' });
-
-              id_estudiante = studentResult.length > 0 ? studentResult[0].id : null;
-
-              return res.status(200).json({
-                message: 'Login exitoso',
-                token,
-                usuario: { ...baseUsuario, id_estudiante, id_asesor, id_revisor: null }
-              });
-            });
-          });
-
-        // Otros roles
-        } else {
-          db.query('SELECT id FROM usuarios WHERE correo = ?', [user.correo], (err, studentResult) => {
+          db.query('SELECT id FROM estudiantes WHERE correo = ?', [user.correo], async (err, studentResult) => {
             if (err) return res.status(500).json({ message: 'Error en el servidor' });
 
             id_estudiante = studentResult.length > 0 ? studentResult[0].id : null;
-
-            return res.status(200).json({
-              message: 'Login exitoso',
-              token,
-              usuario: { ...baseUsuario, id_estudiante, id_asesor: null, id_revisor: null }
-            });
+            await enviarRespuesta({ ...baseUsuario, id_estudiante, id_asesor, id_revisor: null });
           });
-        }
-      });
+        });
+
+      } else {
+        db.query('SELECT id FROM usuarios WHERE correo = ?', [user.correo], async (err, studentResult) => {
+          if (err) return res.status(500).json({ message: 'Error en el servidor' });
+
+          id_estudiante = studentResult.length > 0 ? studentResult[0].id : null;
+          await enviarRespuesta({ ...baseUsuario, id_estudiante, id_asesor: null, id_revisor: null });
+        });
+      }
     });
   });
+});
 
 
   // Rutas de usuarios y terrenos con autorización
@@ -694,6 +771,45 @@ io.on('connection', socket => {
       res.status(500).json({ message: 'Error en el servidor', error: error.message });
     }
   });
+
+
+  app.get('/api/ultimos-mensajes/:usuarioId', async (req, res) => {
+  const usuarioId = req.params.usuarioId;
+
+  try {
+    const sql = `
+      SELECT 
+        m1.*
+      FROM mensajes m1
+      INNER JOIN (
+        SELECT 
+          LEAST(emisor_id, receptor_id) AS user1,
+          GREATEST(emisor_id, receptor_id) AS user2,
+          MAX(id) AS max_id
+        FROM mensajes
+        WHERE emisor_id = ? OR receptor_id = ?
+        GROUP BY user1, user2
+      ) m2 ON 
+        LEAST(m1.emisor_id, m1.receptor_id) = m2.user1 AND 
+        GREATEST(m1.emisor_id, m1.receptor_id) = m2.user2 AND 
+        m1.id = m2.max_id
+      ORDER BY m1.fecha_envio DESC;
+    `;
+
+    db.query(sql, [usuarioId, usuarioId], (err, rows) => {
+      if (err) {
+        console.error('❌ Error al obtener últimos mensajes:', err);
+        return res.status(500).json({ message: 'Error al obtener mensajes', error: err.message });
+      }
+
+      res.json(rows);
+    });
+
+  } catch (error) {
+    console.error('❌ Error inesperado en el servidor:', error);
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+  }
+});
 
   ///TINKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--------------------------------
 // GET /api/sorteos?page=1&limit=15

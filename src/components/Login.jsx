@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import jwt_decode from 'jwt-decode';
 
+
 import '../styles/Login.css';
 
 
@@ -110,9 +111,13 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+      <div class="login-container">
+        <img src="/images/fondo.png" class="bg-img" />
+
       <form className="login-form" onSubmit={handleLogin}>
-        <h1>Universidad Continental</h1>
+        <div className="form-title">
+          <h1>Universidad Continental</h1>
+        </div>
         
         <div>
           <label htmlFor="username">Correo</label>
@@ -145,8 +150,7 @@ const Login = () => {
         
 
         <div className="google-login-container">
-          <label htmlFor="password">Inicia sesíon aquí por favor, más rápido con google</label>
-          <label htmlFor="password">Click en Acceder con google y elige tu cuenta</label>
+          <label htmlFor="password">Inicia sesíon aquí, Click en Inicie sesión con google y elige tu cuenta</label>
           <h1 className="or-text"> </h1>
           <GoogleLogin 
             onSuccess={handleGoogleLoginSuccess} 
